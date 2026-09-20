@@ -1,0 +1,27 @@
+{
+  "tmux_session": "fleet",
+  "tmux_socket": "fleet",
+  "presets": {
+    "default": {
+      "desc": "Normal permissions (asks before acting)",
+      "args": []
+    },
+    "yolo": {
+      "desc": "Skip ALL permission checks (fast, trusting)",
+      "args": ["--dangerously-skip-permissions"]
+    },
+    "auto": {
+      "desc": "Auto-accept edits, still ask for risky ops",
+      "args": ["--permission-mode", "acceptEdits"]
+    },
+    "plan": {
+      "desc": "Plan mode: read-only, proposes before doing",
+      "args": ["--permission-mode", "plan"]
+    },
+    "sandboxed": {
+      "desc": "Skip perms + sandbox settings (edit sandbox-settings.json to lock down network)",
+      "args": ["--dangerously-skip-permissions"],
+      "settings": "sandbox-settings.json"
+    }
+  }
+}

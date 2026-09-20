@@ -1,0 +1,4 @@
+# runtime logs (contain local paths / session names)
+*.log
+__pycache__/
+*.pyc
