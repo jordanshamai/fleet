@@ -1,0 +1,32 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: tag must match __version__
+        run: |
+          v="$(python3 fleet.py version | sed 's/^fleet v//')"
+          [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "tag $GITHUB_REF_NAME but fleet.py says v$v"; exit 1; }
+      - name: tests
+        run: python3 -m unittest discover -s tests
+      - name: release notes from CHANGELOG.md
+        run: |
+          ver="${GITHUB_REF_NAME#v}"
+          awk -v ver="$ver" '/^## /{p = index($0, "[" ver "]") > 0; next} p' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "See CHANGELOG.md." > notes.md
+          printf '\n---\nInstall / update:\n```\ncurl -fsSL https://raw.githubusercontent.com/%s/main/install.sh | bash\nfleet update\n```\n' "$GITHUB_REPOSITORY" >> notes.md
+          cat notes.md
+      - name: tarball
+        run: git archive --format=tar.gz --prefix="fleet-$GITHUB_REF_NAME/" -o "fleet-$GITHUB_REF_NAME.tar.gz" "$GITHUB_REF_NAME"
+      - name: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "fleet $GITHUB_REF_NAME" --notes-file notes.md "fleet-$GITHUB_REF_NAME.tar.gz"

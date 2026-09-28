@@ -1,0 +1,26 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: compile
+        run: python3 -m py_compile fleet.py
+      - name: unit tests
+        run: python3 -m unittest discover -s tests -v
+      - name: installer syntax
+        run: bash -n install.sh
+      - name: cli smoke
+        run: |
+          python3 fleet.py --version
+          python3 fleet.py presets
+          FLEET_THEME=light python3 fleet.py theme | grep -q light
